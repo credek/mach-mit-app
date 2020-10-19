@@ -1,16 +1,30 @@
 import React from "react";
-import ActivityCard from "./components/ActivityCard";
 import "./App.css";
-import Homepage from "./components/Homepage.js";
+import { Signup } from "./components/signUpForm";
+import ActivityCard from "./components/ActivityCard";
 import Container from "@material-ui/core/Container";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import MainTextHeroImg from "./components/MainTextHeroImg";
+import SearchBar from "./components/SearchBar";
+import JoinButton from "./components/JoinButton.js";
+
 
 class App extends React.Component {
   render() {
     return (
-      <Container maxWidth="lg">
-        <Homepage />
-        <ActivityCard />
-      </Container>
+      <div>
+        <Container maxWidth="lg">
+          <Header />
+          <MainTextHeroImg />
+          <JoinButton />
+          <SearchBar />
+          <ActivityCard />
+        </Container>
+        <div>
+          <Footer />
+        </div>
+      </div>
     );
   }
 }
