@@ -114,6 +114,7 @@ const App = () => {
                 {...routerProps}
                 isLoggedIn={isLoggedIn}
                 user={user}
+                auth={auth}
               />
             )}
           />

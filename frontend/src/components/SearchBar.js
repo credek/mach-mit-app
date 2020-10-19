@@ -11,7 +11,8 @@ import {
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import ActivityCard from "../components/ActivityCard";
-
+import { makeStyles } from '@material-ui/core/styles';
+import LinearProgress from '@material-ui/core/LinearProgress';
 
 export default class SearchBar extends React.Component {
   constructor(props) {
@@ -26,6 +27,7 @@ export default class SearchBar extends React.Component {
       inputLocation: "",
       message: "",
       firstSearch: false,
+      isLoading: false
     };
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -33,7 +35,14 @@ export default class SearchBar extends React.Component {
   componentDidMount() {
     fetch("http://localhost:5000/api/v1/categories")
       .then((res) => res.json())
-      .then((categories) => this.setState({ categories }))
+      .then((categories) => {
+        let sortedCategories = (categories.sort(function (a,b) {
+          let x = a.name;
+          let y = b.name;
+          return x < y ? -1 : x > y ? 1 : 0;
+        }))
+        this.setState({ categories: sortedCategories })
+      })
       .catch((err) => console.log(err));
 
     fetch("http://localhost:5000/api/v1/activities/locations")
@@ -51,6 +60,7 @@ export default class SearchBar extends React.Component {
   handleSubmit(evt) {
     evt.preventDefault();
     let searchKey = "";
+    this.setState({isLoading: true})
 
     if (
       this.state.inputCategory.length === 0 &&
@@ -80,11 +90,21 @@ export default class SearchBar extends React.Component {
       fetch(`http://localhost:5000/api/v1/activities${searchKey}`)
         .then((res) => res.json())
         .then((activities) => {
-            activities.sort(function(a, b) {
-            let x = a.startDate; let y = b.startDate;
-            return ((x < y) ? -1 : ((x > y) ? 1 : 0));
-        });       
-        this.setState({ activities: activities.filter( activity => new Date(activity.startDate).getTime() > new Date().getTime()) });
+          this.setState({
+            isLoading: false,
+          });
+          activities.sort(function (a, b) {
+            let x = a.startDate;
+            let y = b.startDate;
+            return x < y ? -1 : x > y ? 1 : 0;
+          });
+          this.setState({
+            isLoading: false,
+            activities: activities.filter(
+              (activity) =>
+                new Date(activity.startDate).getTime() > new Date().getTime()
+            ),
+          });
         })
         .catch((err) => console.log(err));
 
@@ -102,15 +122,31 @@ export default class SearchBar extends React.Component {
     this.setState({ inputLocation: val });
   };
 
+
+  useStyles = () => makeStyles((theme) => ({
+    root: {
+      width: '100%',
+      '& > * + *': {
+        marginTop: theme.spacing(2),
+      },
+    },
+  }));
+
   render() {
+
+
+
+
+    const classes = this.useStyles();
+
     return (
-      <Container>
+      <Container component="main" maxWidth="lg">
         <Grid container justify="center" alignItems="center">
           <Paper
             style={{
-              backgroundColor: "rgba(238,250,255, 0.5)",
+              backgroundColor: "#F5F5F5",
               width: "100%",
-              padding: "5px",
+              padding: "10px",
             }}
           >
             <form id="Search" onSubmit={this.handleSubmit}>
@@ -126,12 +162,8 @@ export default class SearchBar extends React.Component {
                     onChange={this.handleChangeCategory}
                     renderInput={(params) => (
                       <TextField
-                        style={{
-                          backgroundColor: "#FFFFFF",
-                        }}
                         {...params}
                         label="Search Activity"
-                        margin="normal"
                         variant="outlined"
                       />
                     )}
@@ -149,12 +181,8 @@ export default class SearchBar extends React.Component {
                     onChange={this.handleChangeLocation}
                     renderInput={(params) => (
                       <TextField
-                        style={{
-                          backgroundColor: "#FFFFFF",
-                        }}
                         {...params}
                         label="Select Location"
-                        margin="normal"
                         variant="outlined"
                         InputProps={{ ...params.InputProps, type: "search" }}
                       />
@@ -167,9 +195,9 @@ export default class SearchBar extends React.Component {
                     fullWidth={true}
                     style={{
                       backgroundColor: "#90E2D8",
-                      color: "rgb(16, 46, 74)",
+                      color: "#102E4A",
                       height: "54px",
-                      marginTop: "6px",
+                      fontWeight: "500",
                       fontSize: ".9rem",
                     }}
                     type="submit"
@@ -184,30 +212,42 @@ export default class SearchBar extends React.Component {
         {this.state.firstSearch && (
           <Paper
             style={{
+              padding: "20px",
               backgroundColor: "rgba(238,250,255, 0.5)",
-              width: "100%",
-              padding: "5px",
-              marginTop: "30px",
+              marginBottom: "5px",
+              marginTop: "60px",
             }}
           >
-            <Box p={3}>
+            <Box>
               <Box>
-                <Typography variant="h4" component="h4" gutterBottom>
+              {this.state.isLoading ?       
+                        <div className={classes.root}>
+                          <h2>Loading...</h2>
+                          <LinearProgress color="secondary" />
+                        </div>
+                        :
+                <Typography variant="h5" component="h5" gutterBottom>
                   {this.state.activities.length > 0 ? (
                     <React.Fragment>
-                      Activities for {this.state.message}
-                      <Box m={1}>
-                        <Divider />
+                      <Box letterSpacing={0.5} fontWeight="fontWeightBold">
+                        Activities for {this.state.message}
                       </Box>
                     </React.Fragment>
                   ) : (
-                    this.state.firstSearch &&
-                    `Sorry, there are no activities for ${this.state.message}`
+                    this.state.firstSearch && (
+                      <Box letterSpacing={0.5} fontWeight="fontWeightBold">
+                        Sorry, there are no activities for
+                        {this.state.message}.
+                      </Box>
+                    )
                   )}
                 </Typography>
+                  } 
               </Box>
-
-              <Grid item justify="center">
+              <Box mb={1}>
+                <Divider />
+              </Box>
+              <Grid item>
                 <ActivityCard activities={this.state.activities} />
               </Grid>
             </Box>
