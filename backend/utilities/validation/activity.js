@@ -5,8 +5,8 @@ module.exports = [
     .optional()
     .trim()
     .escape()
-    .isLength({ min: 10, max: 256 })
-    .withMessage('Title must be between 10 and 256 characters'),
+    .isLength({ min: 5, max: 20 })
+    .withMessage('Title must be between 5 and 20 characters'),
   body('description')
     .optional()
     .trim()
@@ -30,10 +30,5 @@ module.exports = [
     .escape()
     .isNumeric()
     .withMessage('Price must contain only numbers'),
-  body('image')
-    .optional()
-    .trim()
-    .escape()
-    .isAlpha()
-    .withMessage('Image must contain only letters'),
+  body('image').optional().trim(),
 ];

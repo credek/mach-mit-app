@@ -15,9 +15,9 @@ const FormikRadioGroup = ({
 
   return (
     <React.Fragment>
-      <RadioGroup {...field} {...props} name={fieldName}>
+      <RadioGroup {...field} {...props} name={fieldName} row>
         {options.map(option => (
-          <FormControlLabel  value={option} control={<Radio />} label={option} />
+          <FormControlLabel labelPlacement="start" value={option} control={<Radio />} label={option} />
         ))}
       </RadioGroup>
 
