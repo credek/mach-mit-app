@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const createError = require('http-errors');
-
 const User = require('../models/UserModel');
 
 exports.getUsers = async (req, res, next) => {
@@ -16,7 +15,6 @@ exports.getUsers = async (req, res, next) => {
 
 exports.addUser = async (req, res, next) => {
   try {
-    console.log(req.body);
     const newUser = new User({ ...req.body, role: 'user' });
     await newUser.save();
     const fullUser = await User.findById(newUser._id)
@@ -35,7 +33,15 @@ exports.getUser = async (req, res, next) => {
       throw new createError.NotFound();
     const user = await User.findById(req.params.id)
       .populate('createdActivities')
-      .populate('participatedActivities');
+      .populate({
+        path: 'createdActivities',
+        populate: { path: 'typeOfActivity' },
+      })
+      .populate('participatedActivities')
+      .populate({
+        path: 'participatedActivities',
+        populate: { path: 'typeOfActivity' },
+      });
     if (!user) throw new createError.NotFound();
     res.status(200).send(user);
   } catch (err) {
@@ -86,6 +92,19 @@ exports.loginUser = async (req, res, next) => {
     if (!isAuthenticated) throw new createError.Unauthorized();
     const token = await loginUser.generateAuthToken();
     res.header('X-Auth-Token', token).status(200).send(loginUser);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.userImage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) throw new createError.NotFound();
+    const imagePath = req.file.path;
+    const updated = await User.findByIdAndUpdate(id, { image: `/${imagePath }`});
+    if (!updated) throw new createError.NotFound();
+    res.status(200).send(updated);
   } catch (err) {
     next(err);
   }
